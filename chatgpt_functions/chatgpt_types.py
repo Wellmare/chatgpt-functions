@@ -6,6 +6,7 @@ class Roles(Enum):
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
+    FUNCTION = 'function' 
 
 @dataclass
 class Message:

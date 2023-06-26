@@ -8,7 +8,7 @@ def readme():
 
 setup(
     name="chatgpt_functions",
-    version="0.0.5",
+    version="0.1.0",
     author="Wellmare",
     author_email="ivan.kolipov@gmail.com",
     description="Wrapper over the gpt3.5 model, capable of calling functions",
