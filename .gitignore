@@ -1,3 +1,7 @@
 /venv
 .env
 __pycache__
+update.txt
+build
+dist
+chatgpt_functions.*

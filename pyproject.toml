@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+# [project]
+# name = "chatgpt_functions"
+# version = "0.0.2"
+# authors = [
+#   { name="Wellmare", email="ivan.kolipov@gmail.com" },
+# ]
+# description = "Wrapper over the gpt3.5 model, capable of calling functions"
+# readme = "README.md"
+# requires-python = ">=3.9"
+# classifiers = [
+#     "Programming Language :: Python :: 3",
+#     "License :: OSI Approved :: MIT License",
+#     "Operating System :: OS Independent",
+# ]
+
+# [project.urls]
+# "Homepage" = "https://github.com/Wellmare/chatgpt-functions"
+# "Bug Tracker" = "https://github.com/Wellmare/chatgpt-functions/issues"
