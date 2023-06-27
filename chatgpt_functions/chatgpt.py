@@ -34,6 +34,7 @@ class ChatGPT:
         messages: list[Message] | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
+        is_add_function_output: bool = False,
     ) -> ChatGPTMethodReponse:
         if messages is not None:
             self.messages = messages
@@ -62,6 +63,14 @@ class ChatGPT:
             function_to_call = self.AVAILABLE_FUNCTIONS[function_name]
             function_args = json.loads(response_message["function_call"]["arguments"])
             function_response = function_to_call(function_args)
+            if is_add_function_output:
+                self.messages.append(
+                    Message(
+                        role=Roles.FUNCTION,
+                        name=function_name,
+                        content=json.dumps(function_response),
+                    )
+                )
             return ChatGPTMethodReponse(
                 is_function_called=True,
                 function_response=function_response,
