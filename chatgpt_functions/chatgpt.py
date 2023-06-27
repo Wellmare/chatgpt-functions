@@ -25,7 +25,7 @@ class ChatGPT:
         messages: list[Message] | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
-    ) -> None | str:
+    ) -> None | Message:
         if messages is not None:
             self.messages = messages
         functions_to_chatgpt = [
