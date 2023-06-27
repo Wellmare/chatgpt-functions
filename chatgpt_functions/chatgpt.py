@@ -20,7 +20,11 @@ class ChatGPT:
         self.messages: list[Message] = []
 
     async def get_chatgpt_response_with_functions(
-        self, functions: list[ChatGptFunction], messages: list[Message] | None = None
+        self,
+        functions: list[ChatGptFunction],
+        messages: list[Message] | None = None,
+        temperature: float = 0.5,
+        max_tokens: int = 1024,
     ) -> None | str:
         if messages is not None:
             self.messages = messages
@@ -34,7 +38,9 @@ class ChatGPT:
             model="gpt-3.5-turbo-0613",
             messages=[message.__dict__() for message in self.messages],
             functions=functions_to_chatgpt,
-            function_call="auto",  # auto is default, but we'll be explicit
+            function_call="auto",  # auto is default, but we'll be explicit,
+            temperature=temperature,
+            max_tokens=max_tokens,
         )
         response_message = response["choices"][0]["message"]
         print(response_message)
