@@ -4,6 +4,15 @@ import openai
 from .chatgpt_function import ChatGptFunction
 from .chatgpt_types import Message, Roles
 from .function_parameters import Parameters, Property
+import typing
+from dataclasses import dataclass
+
+
+@dataclass
+class ChatGPTMethodReponse:
+    is_function_called: bool
+    function_response: None | typing.Any
+    chatgpt_response_message: Message
 
 
 class ChatGPT:
@@ -25,7 +34,7 @@ class ChatGPT:
         messages: list[Message] | None = None,
         temperature: float = 0.5,
         max_tokens: int = 1024,
-    ) -> None | Message:
+    ) -> ChatGPTMethodReponse:
         if messages is not None:
             self.messages = messages
         functions_to_chatgpt = [
@@ -53,7 +62,17 @@ class ChatGPT:
             function_to_call = self.AVAILABLE_FUNCTIONS[function_name]
             function_args = json.loads(response_message["function_call"]["arguments"])
             function_response = function_to_call(function_args)
+            return ChatGPTMethodReponse(
+                is_function_called=True,
+                function_response=function_response,
+                chatgpt_response_message=response_message,
+            )
         else:
-            print("Функция не вызвана")
-            print(response["choices"][0]["message"])
-            return response["choices"][0]["message"]
+            # print("Функция не вызвана")
+            # print(response["choices"][0]["message"])
+            # return response["choices"][0]["message"]
+            return ChatGPTMethodReponse(
+                is_function_called=False,
+                function_response=None,
+                chatgpt_response_message=response_message,
+            )
