@@ -61,7 +61,7 @@ def retry_decorator(tries: int, delay: int):
 
 class ChatGPT:
     AVAILABLE_FUNCTIONS = {}
-    message: list[Message] = []
+    messages: list[Message] = []
 
     def __init__(
             self,
@@ -93,12 +93,12 @@ class ChatGPT:
             self.logger.debug(message)
 
     @retry_decorator(tries=3, delay=2)
-    async def get_chatgpt_response(self, messages: list[Message] | None = None, temperature: float = 0.5,
+    async def get_chatgpt_response(self, messages_to_set: list[Message] | None = None, temperature: float = 0.5,
                                    max_tokens: int = 1024, ) -> ChatGPTMethodResponse:
-        if messages is not None:
-            self.messages = messages
+        if messages_to_set is not None:
+            self.messages = messages_to_set
 
-        self.log_debug(f"messages: {messages}")
+        self.log_debug(f"messages: {self.messages}")
         response = await openai.ChatCompletion.acreate(
             model=self.model,
             messages=[message.__dict__() for message in self.messages],
@@ -127,16 +127,16 @@ class ChatGPT:
     async def get_chatgpt_response_with_functions(
             self,
             functions: list[ChatGptFunction],
-            messages: list[Message] | None = None,
+            messages_to_set: list[Message] | None = None,
             temperature: float = 0.5,
             max_tokens: int = 1024,
             is_add_function_output: bool = False,
     ) -> ChatGPTFunctionsMethodResponse:
         # try:
-        if messages is not None:
-            self.messages = messages
+        if messages_to_set is not None:
+            self.messages = messages_to_set
 
-        self.log_debug(f"messages: {messages}")
+        self.log_debug(f"messages: {self.messages}")
 
         functions_to_chatgpt = [
             function.append_available_functions(self.AVAILABLE_FUNCTIONS)

@@ -1,4 +1,5 @@
 # Example of usage:
+
 ```python
 import asyncio
 from chatgpt_functions import (
@@ -40,7 +41,7 @@ async def main():
                 function_description="Say hello to user",
             )
         ],
-        messages=[Message(role=Roles.USER, content='Скажи приветик миче')]
+        messages_to_set=[Message(role=Roles.USER, content='Скажи приветик миче')]
     )
 
 
