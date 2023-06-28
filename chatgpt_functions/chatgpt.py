@@ -22,7 +22,8 @@ class UsageTokens:
 @dataclass
 class ChatGPTFunctionsMethodResponse:
     is_function_called: bool
-    function_response: None | typing.Any
+    function_response: typing.Any | None
+    function_args: dict | None
     chatgpt_response_message: Message
     usage_tokens: UsageTokens
 
@@ -195,6 +196,7 @@ class ChatGPT:
             return ChatGPTFunctionsMethodResponse(
                 is_function_called=True,
                 function_response=function_response,
+                function_args=function_args,
                 chatgpt_response_message=chatgpt_message,
                 usage_tokens=usage_tokens
             )
