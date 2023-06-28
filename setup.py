@@ -1,3 +1,5 @@
+# import os
+# from pathlib import Path
 from setuptools import setup, find_packages
 
 
@@ -6,12 +8,14 @@ def readme():
         return f.read()
 
 
-def read_requirements():
-    with open('requirements.txt', 'rb') as file:
-        content = file.read().decode('utf-8')
-    lines = content.splitlines()
-    lines = [line.strip() for line in lines if line.strip()]
-    return lines
+# script_path = Path(os.path.dirname(os.path.abspath(__file__)))
+
+# def read_requirements():
+#     with open(script_path / 'requirements.txt', 'rb') as file:
+#         content = file.read().decode('utf-8')
+#     lines = content.splitlines()
+#     lines = [line.strip() for line in lines if line.strip()]
+#     return lines
 
 
 setup(
@@ -24,7 +28,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Wellmare/chatgpt-functions",
     packages=find_packages(),
-    install_requires=read_requirements(),
+    install_requires=["loguru==0.7.0", "openai==0.27.8", "python-dotenv==1.0.0"],
     classifiers=[
         "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: MIT License",
