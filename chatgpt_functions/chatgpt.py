@@ -3,6 +3,7 @@ import json
 import sys
 import typing
 from dataclasses import dataclass
+from typing import Optional
 
 import openai
 from loguru import logger
@@ -22,10 +23,10 @@ class UsageTokens:
 @dataclass
 class ChatGPTFunctionsMethodResponse:
     is_function_called: bool
-    function_response: typing.Any | None
-    function_args: dict | None
+    function_response: typing.Any
     chatgpt_response_message: Message
     usage_tokens: UsageTokens
+    function_args: Optional[dict] = None
 
 
 @dataclass
@@ -196,7 +197,7 @@ class ChatGPT:
             return ChatGPTFunctionsMethodResponse(
                 is_function_called=True,
                 function_response=function_response,
-                function_args=function_args,
+                function_args=function_args if bool(function_args) else None,
                 chatgpt_response_message=chatgpt_message,
                 usage_tokens=usage_tokens
             )
