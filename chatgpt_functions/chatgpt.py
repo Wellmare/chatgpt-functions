@@ -8,15 +8,29 @@ import openai
 from loguru import logger
 
 from .chatgpt_function import ChatGptFunction
-from .chatgpt_types import Message, Roles
+from .chatgpt_types import Message, Roles, FunctionCall
 from .function_parameters import Parameters, Property
 
 
 @dataclass
-class ChatGPTMethodResponse:
+class UsageTokens:
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+
+
+@dataclass
+class ChatGPTFunctionsMethodResponse:
     is_function_called: bool
     function_response: None | typing.Any
     chatgpt_response_message: Message
+    usage_tokens: UsageTokens
+
+
+@dataclass
+class ChatGPTMethodResponse:
+    chatgpt_response_message: Message
+    usage_tokens: UsageTokens
 
 
 class MaxRetriesExceeded(Exception):
@@ -53,7 +67,7 @@ class ChatGPT:
             self,
             openai_api_key: str,
             messages: list[Message] | None = None,
-            model: str = "gpt-3.5-turbo-0613",
+            model: str = "gpt-3.5-turbo",
             is_log: bool = False,
             is_debug: bool = False,
     ):
@@ -79,6 +93,37 @@ class ChatGPT:
             self.logger.debug(message)
 
     @retry_decorator(tries=3, delay=2)
+    async def get_chatgpt_response(self, messages: list[Message] | None = None, temperature: float = 0.5,
+                                   max_tokens: int = 1024, ) -> ChatGPTMethodResponse:
+        if messages is not None:
+            self.messages = messages
+
+        self.log_debug(f"messages: {messages}")
+        response = await openai.ChatCompletion.acreate(
+            model=self.model,
+            messages=[message.__dict__() for message in self.messages],
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
+        self.log_debug(f"response: {response}")
+
+        response_message = response["choices"][0]["message"]
+
+        chatgpt_message = Message(role=Roles.ASSISTANT, content=response_message['content'], )
+
+        self.log_debug(f"response_message: {response_message}")
+
+        usage_tokens = UsageTokens(prompt_tokens=response['usage']['prompt_tokens'],
+                                   completion_tokens=response['usage']['completion_tokens'],
+                                   total_tokens=response['usage']['total_tokens'],
+                                   )
+        return ChatGPTMethodResponse(
+            chatgpt_response_message=chatgpt_message,
+            usage_tokens=usage_tokens,
+        )
+
+    @retry_decorator(tries=3, delay=2)
     async def get_chatgpt_response_with_functions(
             self,
             functions: list[ChatGptFunction],
@@ -86,7 +131,7 @@ class ChatGPT:
             temperature: float = 0.5,
             max_tokens: int = 1024,
             is_add_function_output: bool = False,
-    ) -> ChatGPTMethodResponse:
+    ) -> ChatGPTFunctionsMethodResponse:
         # try:
         if messages is not None:
             self.messages = messages
@@ -100,7 +145,7 @@ class ChatGPT:
         ]
         self.log_debug(f"functions_to_chatgpt: {functions_to_chatgpt}")
         response = await openai.ChatCompletion.acreate(
-            model="gpt-3.5-turbo-0613",
+            model=self.model,
             messages=[message.__dict__() for message in self.messages],
             functions=functions_to_chatgpt,
             function_call="auto",  # auto is default, but we'll be explicit,
@@ -111,7 +156,12 @@ class ChatGPT:
         self.log_debug(f"response: {response}")
 
         response_message = response["choices"][0]["message"]
-        self.log_info(f"response_message: {response_message}")
+        self.log_debug(f"response_message: {response_message}")
+
+        usage_tokens = UsageTokens(prompt_tokens=response['usage']['prompt_tokens'],
+                                   completion_tokens=response['usage']['completion_tokens'],
+                                   total_tokens=response['usage']['total_tokens'],
+                                   )
 
         if response_message.get("function_call"):
             # Step 3: call the function
@@ -127,6 +177,11 @@ class ChatGPT:
 
             self.log_info(f"function_response: {function_response}")
 
+            chatgpt_message = Message(role=Roles.ASSISTANT, content=response_message['content'],
+                                      function_call=FunctionCall(name=function_name,
+                                                                 arguments=response_message["function_call"][
+                                                                     "arguments"]))
+
             if is_add_function_output:
                 self.log_debug("Add function response to messages")
                 self.messages.append(
@@ -136,19 +191,22 @@ class ChatGPT:
                         content=json.dumps(function_response),
                     )
                 )
-            return ChatGPTMethodResponse(
+                self.messages.append(chatgpt_message)
+            return ChatGPTFunctionsMethodResponse(
                 is_function_called=True,
                 function_response=function_response,
-                chatgpt_response_message=response_message,
+                chatgpt_response_message=chatgpt_message,
+                usage_tokens=usage_tokens
             )
         else:
             self.log_info("The function is not called")
             # print(response["choices"][0]["message"])
             # return response["choices"][0]["message"]
-            return ChatGPTMethodResponse(
+            return ChatGPTFunctionsMethodResponse(
                 is_function_called=False,
                 function_response=None,
-                chatgpt_response_message=response_message,
+                chatgpt_response_message=Message(role=Roles.ASSISTANT, content=response_message['content']),
+                usage_tokens=usage_tokens
             )
 
     # except Exception as e:
