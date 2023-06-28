@@ -21,7 +21,7 @@ class Parameters:
     result_required: list = []
 
     def __init__(
-        self, properties: list[Property], required: list | bool = True
+            self, properties: list[Property], required: list | bool = True
     ) -> None:
         self.properties = properties
         self.required = required

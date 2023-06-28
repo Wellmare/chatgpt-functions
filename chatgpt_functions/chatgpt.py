@@ -6,7 +6,6 @@ from dataclasses import dataclass
 
 import openai
 from loguru import logger
-from retry import retry
 
 from .chatgpt_function import ChatGptFunction
 from .chatgpt_types import Message, Roles
@@ -14,7 +13,7 @@ from .function_parameters import Parameters, Property
 
 
 @dataclass
-class ChatGPTMethodReponse:
+class ChatGPTMethodResponse:
     is_function_called: bool
     function_response: None | typing.Any
     chatgpt_response_message: Message
@@ -48,18 +47,20 @@ def retry_decorator(tries: int, delay: int):
 
 class ChatGPT:
     AVAILABLE_FUNCTIONS = {}
+    message: list[Message] = []
 
     def __init__(
-        self,
-        openai_api_key: str,
-        messages: list[Message] = [],
-        model: str = "gpt-3.5-turbo-0613",
-        is_log: bool = False,
-        is_debug: bool = False,
+            self,
+            openai_api_key: str,
+            messages: list[Message] | None = None,
+            model: str = "gpt-3.5-turbo-0613",
+            is_log: bool = False,
+            is_debug: bool = False,
     ):
         openai.api_key = openai_api_key
         self.model = model
-        self.messages: list[Message] = []
+        if messages:
+            self.messages = messages
         self.is_log = is_log
         self.logger = logger
         if not is_debug:
@@ -79,13 +80,13 @@ class ChatGPT:
 
     @retry_decorator(tries=3, delay=2)
     async def get_chatgpt_response_with_functions(
-        self,
-        functions: list[ChatGptFunction],
-        messages: list[Message] | None = None,
-        temperature: float = 0.5,
-        max_tokens: int = 1024,
-        is_add_function_output: bool = False,
-    ) -> ChatGPTMethodReponse:
+            self,
+            functions: list[ChatGptFunction],
+            messages: list[Message] | None = None,
+            temperature: float = 0.5,
+            max_tokens: int = 1024,
+            is_add_function_output: bool = False,
+    ) -> ChatGPTMethodResponse:
         # try:
         if messages is not None:
             self.messages = messages
@@ -93,7 +94,7 @@ class ChatGPT:
         self.log_debug(f"messages: {messages}")
 
         functions_to_chatgpt = [
-            function.append_avaliable_functions(self.AVAILABLE_FUNCTIONS)
+            function.append_available_functions(self.AVAILABLE_FUNCTIONS)
             or function.__dict__()
             for function in functions
         ]
@@ -135,7 +136,7 @@ class ChatGPT:
                         content=json.dumps(function_response),
                     )
                 )
-            return ChatGPTMethodReponse(
+            return ChatGPTMethodResponse(
                 is_function_called=True,
                 function_response=function_response,
                 chatgpt_response_message=response_message,
@@ -144,7 +145,7 @@ class ChatGPT:
             self.log_info("The function is not called")
             # print(response["choices"][0]["message"])
             # return response["choices"][0]["message"]
-            return ChatGPTMethodReponse(
+            return ChatGPTMethodResponse(
                 is_function_called=False,
                 function_response=None,
                 chatgpt_response_message=response_message,

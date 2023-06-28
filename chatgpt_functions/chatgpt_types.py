@@ -2,11 +2,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+
 class Roles(Enum):
     USER = "user"
     ASSISTANT = "assistant"
     SYSTEM = "system"
-    FUNCTION = 'function' 
+    FUNCTION = 'function'
+
 
 @dataclass
 class Message:
