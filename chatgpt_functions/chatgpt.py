@@ -133,6 +133,7 @@ class ChatGPT:
             temperature: float = 0.5,
             max_tokens: int = 1024,
             is_add_function_output: bool = False,
+            function_call: str | dict = 'auto'
     ) -> ChatGPTFunctionsMethodResponse:
         # try:
         if messages_to_set is not None:
@@ -150,7 +151,7 @@ class ChatGPT:
             model=self.model,
             messages=[message.__dict__() for message in self.messages],
             functions=functions_to_chatgpt,
-            function_call="auto",  # auto is default, but we'll be explicit,
+            function_call=function_call,  # auto is default, but we'll be explicit,
             temperature=temperature,
             max_tokens=max_tokens,
         )
